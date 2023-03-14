@@ -1,0 +1,81 @@
+module au_top (
+    input clk,              // 100MHz clock
+    input rst_n,            // reset button (active low)
+    output led [8],         // 8 user controllable LEDs
+    input usb_rx,           // USB->Serial input
+    output usb_tx,          // USB->Serial output
+    output io_led [3][8],   // LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield
+    output io_sel [4],      // Digit select on IO Shield
+    input io_button [5],    // 5 buttons on IO Shield
+    input io_dip [3][8]     // DIP switches on IO Shield
+  ) {
+  
+  sig rst;                  // reset signal
+  alu alu_;
+  //alu alu_test;
+  demux demx(.clk(clk), .rst(rst));
+  counter slowclock(#SIZE(1),#DIV(26), .clk(clk), .rst(rst));
+  fsm_tester fsmtester(.clk(slowclock.value));
+  fsm_hardcode1 fsm1(.clk(slowclock.value));
+  fsm_hardcode2 fsm2(.clk(slowclock.value));
+  fsm_hardcode3 fsm3(.clk(slowclock.value));
+  //run_test runtest;
+  
+  
+  .clk(clk) {
+    // The reset conditioner is used to synchronize the reset signal to the FPGA
+    // clock. This ensures the entire FPGA comes out of reset at the same time.
+    reset_conditioner reset_cond;
+  }
+  
+  always {
+    reset_cond.in = ~rst_n; // input raw inverted reset signal
+    rst = reset_cond.out;   // conditioned reset
+    
+    usb_tx = usb_rx;        // loop serial port
+    
+    led = 8h00;             // turn LEDs off
+    
+    io_led = 3x{{8h00}};    // turn LEDs off
+    io_seg = 8hff;          // turn segments off
+    io_sel = 4hf;           // select no digits
+    
+    //runtest.testcase = io_dip[0][1:0];
+    
+        
+             
+    demx.in[7:0] = io_dip[0];
+    demx.in[15:8] = io_dip[1];
+    demx.signal = io_dip[2][1:0];
+    
+    fsmtester.reset = io_button[4];
+    fsm1.reset = io_button[4];
+    fsm2.reset = io_button[4];
+    fsm3.reset = io_button[4];
+    
+    alu_.a = demx.out1;
+    alu_.b = demx.out2;
+    
+    case(io_button[0]){
+      0 : alu_.alufn_signal = io_dip[2][7:2];
+          //runtest.alufn = io_dip[2][7:2];
+      1 : alu_.alufn_signal = fsmtester.out;
+          //runtest.alufn = fsmtester.out;
+      default : alu_.alufn_signal = io_dip[2][7:2];
+                //runtest.alufn = io_dip[2][7:2];
+      }
+    
+    io_led[0] = alu_.out[7:0];
+    io_led[1] = alu_.out[15:8];
+    io_led[2][7:5] = alu_.zvn;
+    io_led[2][1:0] = demx.show;
+    io_led[2][2] = fsm1.out;
+    io_led[2][3] = fsm2.out;
+    io_led[2][4] = fsm3.out;
+    io_seg[5:0] = fsm1.alufn;
+    //io_led[2][1] = runtest.out;
+  
+  }
+    
+}

@@ -1,0 +1,91 @@
+module fsm_hardcode1 (
+    input clk,  // clock
+    input reset,
+    output out, // alufn signals
+    output alufn
+  ) {
+  alu alu_;
+  
+  .clk(clk){
+    fsm testAluFsm={ADD, SUB, AND, OR, XOR, A, SHL, SHR, SRA, CMPEQ, CMPLT, CMPLE}; 
+  }
+
+  always {
+    out = b1;
+    alu_.a = b0001010010000000;
+    alu_.b = b0000000000000011;
+    case(reset) {
+      1: testAluFsm.d = testAluFsm.ADD;
+      0:
+    case(testAluFsm.q){
+      testAluFsm.ADD : 
+              alu_.alufn_signal = b000000;
+              alufn = b000000;
+              out = (alu_.out == b0001010010000011);    
+              testAluFsm.d = testAluFsm.ADD;
+      testAluFsm.SUB : 
+              alu_.alufn_signal = b000001;
+              alufn = b000001;
+              out = (alu_.out == b0001010001111101);    
+              testAluFsm.d = testAluFsm.AND;      
+      testAluFsm.AND : 
+              alu_.alufn_signal = b011000;
+              alufn = b011000;
+              out = (alu_.out == 16b0);
+              testAluFsm.d = testAluFsm.OR;  
+      testAluFsm.OR : 
+              alu_.alufn_signal = b011110;
+              alufn = b011110;
+              out = (alu_.out == b0001010010000011);    
+              testAluFsm.d = testAluFsm.XOR;        
+      testAluFsm.XOR : 
+              alu_.alufn_signal = b010110;
+              alufn = b010110;
+              out = (alu_.out == b0001010010000011);    
+              testAluFsm.d = testAluFsm.A;        
+      testAluFsm.A : 
+              alu_.alufn_signal = b011010;
+              alufn = b011010;
+              out = (alu_.out == b0001010010000000);
+              testAluFsm.d = testAluFsm.SHL;        
+      testAluFsm.SHL : 
+              alu_.alufn_signal = b100000;
+              alufn = b100000;
+              out = (alu_.out == b1010010000000000);
+              testAluFsm.d = testAluFsm.SHR;        
+      testAluFsm.SHR : 
+              alu_.alufn_signal = b100001;
+              alufn = b100001;
+              out = (alu_.out == b0000001010010000);
+              testAluFsm.d = testAluFsm.SRA;        
+      testAluFsm.SRA : 
+              alu_.alufn_signal = b100011;
+              alufn = b100011;
+              out = (alu_.out == b0000001010010000);
+              testAluFsm.d = testAluFsm.CMPEQ; 
+      testAluFsm.CMPEQ : 
+              alu_.alufn_signal = b110011;
+              alufn = b110011;
+              out = (alu_.out == 16b0);
+              testAluFsm.d = testAluFsm.CMPLT;
+      testAluFsm.CMPLT : 
+              alu_.alufn_signal = b110101;
+              alufn = b110101;
+              out = (alu_.out == 16b0);
+              testAluFsm.d = testAluFsm.CMPLE;        
+      testAluFsm.CMPLE : 
+              alu_.alufn_signal = b110111;
+              alufn = b110111;
+              out = (alu_.out == 16b0);
+              testAluFsm.d = testAluFsm.ADD;
+      default:
+              alu_.alufn_signal = b000000;
+              alufn = b000000;
+              out = (alu_.out == b0001010010000011);        
+              testAluFsm.d = testAluFsm.ADD;      
+                          
+    }
+      default: testAluFsm.d = testAluFsm.ADD;
+  }
+  }
+}

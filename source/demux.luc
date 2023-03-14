@@ -1,0 +1,25 @@
+module demux (
+    input clk,  // clock
+    input rst,  // reset
+    input in[16],
+    output out1[16],
+    output out2[16],
+    input signal[2],
+    output show[2]
+  ) 
+  {
+    dff register_1[16](#INIT(16b0), .clk(clk), .rst(rst));
+    dff register_2[16](#INIT(16b0), .clk(clk), .rst(rst));
+  always {
+    
+    case(signal) {
+        b01 : register_1.d = in; show = b01;
+          
+        b10 : register_2.d = in; show = b10;   
+
+        default : show = b11;
+      }
+    out1 = register_1.q;
+    out2 = register_2.q;
+    }
+}
